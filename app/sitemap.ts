@@ -20,7 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })) ?? []
 
     const categoryUrls = categories?.map(c => ({
-        url: `${BASE_URL}/categories/${c.category}`,
+        url: `${BASE_URL}/categories/${encodeURIComponent(c.category)}`,
         lastModified: new Date(),
         changeFrequency: 'daily' as const,
         priority: 0.7,
