@@ -12,6 +12,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .from('products')
         .select('category')
 
+    const uniqueCategories = [...new Set(categories?.map(c => c.category))]
+
     const productUrls = products?.map(p => ({
         url: `${BASE_URL}/products/${p.id}`,
         lastModified: new Date(),
@@ -19,12 +21,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
     })) ?? []
 
-    const categoryUrls = categories?.map(c => ({
-        url: `${BASE_URL}/categories/${encodeURIComponent(c.category)}`,
+    const categoryUrls = uniqueCategories.map(c => ({
+        url: `${BASE_URL}/categories/${encodeURIComponent(c)}`,
         lastModified: new Date(),
         changeFrequency: 'daily' as const,
         priority: 0.7,
-    })) ?? []
+    }))
 
     return [
         {
@@ -39,13 +41,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: 'daily' as const,
             priority: 0.9,
         },
+        ...productUrls,
         {
-            url: `${BASE_URL}/products`,
+            url: `${BASE_URL}/categories`,
             lastModified: new Date(),
             changeFrequency: 'daily' as const,
-            priority: 0.9,
+            priority: 0.8,
         },
-        ...productUrls,
         ...categoryUrls,
     ]
 }
