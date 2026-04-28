@@ -12,6 +12,12 @@ interface PageProps {
     params: Promise<{ category: string }>
 }
 
+export async function generateMetadata({ params }: { params: { category: string } }) {
+    return {
+        alternates: { canonical: `/categories/${params.category}` },
+    };
+}
+
 const categories = [
     'Automotive',
     'Beauty',

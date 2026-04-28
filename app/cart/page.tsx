@@ -7,6 +7,10 @@ import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { Trash2, Plus, Minus } from 'lucide-react'
 
+export const metadata = {
+    alternates: { canonical: '/cart' },
+};
+
 export default function CartPage() {
     const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore()
 

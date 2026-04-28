@@ -7,6 +7,10 @@ import ProductCard from '@/components/ProductCard'
 import { Product } from '@/types/product'
 import { Search, Loader2 } from 'lucide-react'
 
+export const metadata = {
+    alternates: { canonical: '/search' },
+};
+
 export default function SearchPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [products, setProducts] = useState<Product[]>([])

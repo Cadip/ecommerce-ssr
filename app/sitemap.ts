@@ -11,6 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data: categories } = await supabase
         .from('products')
         .select('category')
+        .order('category')
 
     const uniqueCategories = [...new Set(categories?.map(c => c.category))]
 
@@ -49,5 +50,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.8,
         },
         ...categoryUrls,
+        {
+            url: `${BASE_URL}/search`,
+            lastModified: new Date(),
+            changeFrequency: 'daily' as const,
+            priority: 0.6,
+        },
+        {
+            url: `${BASE_URL}/cart`,
+            lastModified: new Date(),
+            changeFrequency: 'daily' as const,
+            priority: 0.5,
+        },
+        {
+            url: `${BASE_URL}/checkout`,
+            lastModified: new Date(),
+            changeFrequency: 'daily' as const,
+            priority: 0.5,
+        },
+        {
+            url: `${BASE_URL}/confirmation`,
+            lastModified: new Date(),
+            changeFrequency: 'daily' as const,
+            priority: 0.4,
+        },
     ]
 }

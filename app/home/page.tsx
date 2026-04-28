@@ -6,6 +6,10 @@ import { Product } from '@/types/product'
 // FORCE SSR
 export const dynamic = 'force-dynamic'
 
+export const metadata = {
+    alternates: { canonical: '/home' },
+};
+
 export default async function HomePage() {
     const { data: products, error } = await supabase
         .from('products')

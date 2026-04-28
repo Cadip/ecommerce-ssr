@@ -12,6 +12,12 @@ interface PageProps {
     params: Promise<{ id: string }>
 }
 
+export async function generateMetadata({ params }: { params: { id: string } }) {
+    return {
+        alternates: { canonical: `/products/${params.id}` },
+    };
+}
+
 export default async function ProductDetailPage({ params }: PageProps) {
     const { id } = await params
 
