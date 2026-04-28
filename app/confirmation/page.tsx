@@ -8,10 +8,6 @@ import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { OrderData } from '@/types/product'
 
-export const metadata = {
-    alternates: { canonical: '/confirmation' },
-};
-
 export default function ConfirmationPage() {
     const router = useRouter()
     const [orderData, setOrderData] = useState<OrderData | null>(null)

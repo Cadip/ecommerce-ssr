@@ -8,10 +8,6 @@ import { formatPrice } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
-export const metadata = {
-    alternates: { canonical: '/checkout' },
-};
-
 export default function CheckoutPage() {
     const router = useRouter()
     const { items, getTotalPrice, clearCart } = useCartStore()
