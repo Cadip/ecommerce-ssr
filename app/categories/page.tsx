@@ -6,6 +6,10 @@ import Image from 'next/image'
 // FORCE SSR
 export const dynamic = 'force-dynamic'
 
+export const metadata = {
+    alternates: { canonical: '/categories' },
+}
+
 const categories = [
     { name: 'Automotive', image: 'automotive.jpg' },
     { name: 'Beauty', image: 'beauty.jpg' },
