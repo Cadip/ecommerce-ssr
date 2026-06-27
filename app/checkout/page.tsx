@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import { useCartStore } from '@/store/cartStore'
 import { formatPrice } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-browser'
 import Link from 'next/link'
+import type { User } from '@supabase/supabase-js'
 
 export default function CheckoutPage() {
     const router = useRouter()
@@ -20,6 +21,37 @@ export default function CheckoutPage() {
         postalCode: '',
     })
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [user, setUser] = useState<User | null>(null)
+    const [checkingAuth, setCheckingAuth] = useState(true)
+
+    const supabase = createClient()
+
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+
+            if (!user) {
+                router.push('/login?redirect=/checkout')
+                return
+            }
+
+            setUser(user)
+            setCheckingAuth(false)
+        }
+
+        checkUser()
+    }, [router])
+
+    if (checkingAuth) {
+        return (
+            <>
+                <Navigation />
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <p className="text-center text-gray-500">Loading...</p>
+                </main>
+            </>
+        )
+    }
 
     if (items.length === 0) {
         return (
@@ -42,6 +74,7 @@ export default function CheckoutPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!user) return
         setIsSubmitting(true)
 
         try {
@@ -65,14 +98,48 @@ export default function CheckoutPage() {
 
             await Promise.all(updatePromises)
 
-            const orderId = 'ORD-' + Date.now()
+            const finalTotal = getTotalPrice() >= 500000
+                ? getTotalPrice()
+                : getTotalPrice() + 50000
+
+            const { data: order, error: orderError } = await supabase
+                .from('orders')
+                .insert({
+                    user_id: user.id,
+                    total_amount: finalTotal,
+                    status: 'completed',
+                    shipping_name: formData.name,
+                    shipping_email: formData.email,
+                    shipping_phone: formData.phone,
+                    shipping_address: formData.address,
+                    shipping_city: formData.city,
+                    shipping_postal_code: formData.postalCode,
+                })
+                .select()
+                .single()
+
+            if (orderError) throw orderError
+
+            const orderItemsPayload = items.map((item) => ({
+                order_id: order.id,
+                product_id: item.id,
+                product_name: item.name,
+                quantity: item.quantity,
+                price_at_purchase: item.price,
+            }))
+
+            const { error: itemsError } = await supabase
+                .from('order_items')
+                .insert(orderItemsPayload)
+
+            if (itemsError) throw itemsError
 
             const orderData = {
-                orderId,
+                orderId: order.id,
                 ...formData,
                 items,
-                total: getTotalPrice() >= 500000 ? getTotalPrice() : getTotalPrice() + 50000,
-                createdAt: new Date().toISOString(),
+                total: finalTotal,
+                createdAt: order.created_at,
             }
 
             sessionStorage.setItem('lastOrder', JSON.stringify(orderData))
@@ -103,7 +170,6 @@ export default function CheckoutPage() {
                 <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Checkout Form */}
                     <div className="lg:col-span-2">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="bg-white border rounded-lg p-6 text-black">
@@ -214,7 +280,6 @@ export default function CheckoutPage() {
                         </form>
                     </div>
 
-                    {/* Order Summary */}
                     <div className="lg:col-span-1">
                         <div className="bg-white border rounded-lg p-6 sticky top-24">
                             <h2 className="text-xl font-bold mb-4 text-black">Order Summary</h2>
@@ -242,7 +307,6 @@ export default function CheckoutPage() {
                                 </div>
                             </div>
 
-                            {/* Stock Warning */}
                             {items.some(item => item.quantity > item.stock) && (
                                 <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
                                     <p className="text-sm text-red-800 font-medium">

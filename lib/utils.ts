@@ -10,6 +10,7 @@ export function formatPrice(price: number): string {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     }).format(price)
 }
 

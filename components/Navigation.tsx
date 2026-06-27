@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { ShoppingBag, Search, Menu, X } from 'lucide-react'
-import { useCartStore } from '@/store/cartStore'
+import { useRouter, usePathname } from 'next/navigation'
+import { ShoppingBag, Search, Menu, X, User, LogOut } from 'lucide-react'
+import { useCart } from '@/store/cartStore'
+import { createClient } from '@/lib/supabase-browser'
 import { useState, useEffect } from 'react'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 
 const categories = [
@@ -22,12 +24,35 @@ const categories = [
 
 export default function Navigation() {
     const pathname = usePathname()
+    const router = useRouter()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
-    const totalItems = useCartStore((state) => state.getTotalItems())
-    const [mounted, setMounted] = useState(false)
+    const { totalItems, hasHydrated } = useCart()
+    const [user, setUser] = useState<SupabaseUser | null>(null)
+
     useEffect(() => {
-        setMounted(true)
+        const supabase = createClient()
+
+        supabase.auth.getUser().then(({ data }) => {
+            setUser(data.user)
+        })
+
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null)
+        })
+
+        return () => {
+            listener.subscription.unsubscribe()
+        }
     }, [])
+
+    const handleLogout = async () => {
+        const supabase = createClient()
+        await supabase.auth.signOut()
+        setUser(null)
+        setIsMenuOpen(false)
+        router.push('/login')
+        router.refresh()
+    }
 
     return (
         <>
@@ -73,6 +98,16 @@ export default function Navigation() {
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Riwayat Pesanan - hanya tampil jika login */}
+                            {user && (
+                                <Link
+                                    href="/account/orders"
+                                    className={`font-medium ${pathname === '/account/orders' ? 'text-gray-900' : 'text-gray-700 hover:text-gray-900'}`}
+                                >
+                                    RIWAYAT PESANAN
+                                </Link>
+                            )}
                         </div>
 
                         {/* Right Menu */}
@@ -86,12 +121,33 @@ export default function Navigation() {
 
                             <Link href="/cart" className="relative">
                                 <ShoppingBag className={`w-5 h-5 ${pathname === '/cart' ? 'text-gray-900' : 'text-gray-700 hover:text-gray-900'}`} />
-                                {mounted && totalItems > 0 && (
+                                {hasHydrated && totalItems > 0 && (
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                                         {totalItems}
                                     </span>
                                 )}
                             </Link>
+
+                            {/* Auth: Login atau Logout */}
+                            <div className="hidden md:block">
+                                {user ? (
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+                                        title="Logout"
+                                    >
+                                        <LogOut className="w-5 h-5" />
+                                    </button>
+                                ) : (
+                                    <Link
+                                        href="/login"
+                                        className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+                                        title="Login"
+                                    >
+                                        <User className="w-5 h-5" />
+                                    </Link>
+                                )}
+                            </div>
 
                             {/* Mobile Menu Button */}
                             <button
@@ -136,6 +192,34 @@ export default function Navigation() {
                                         {cat}
                                     </Link>
                                 ))}
+                            </div>
+
+                            <div className="border-t pt-3 space-y-3">
+                                {user ? (
+                                    <>
+                                        <Link
+                                            href="/account/orders"
+                                            className="block text-gray-700 hover:text-gray-900 font-semibold"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            RIWAYAT PESANAN
+                                        </Link>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="block text-left w-full text-red-600 font-semibold"
+                                        >
+                                            LOGOUT
+                                        </button>
+                                    </>
+                                ) : (
+                                    <Link
+                                        href="/login"
+                                        className="block text-gray-700 hover:text-gray-900 font-semibold"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        LOGIN
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -5,14 +5,14 @@ import Link from 'next/link'
 import { Product } from '@/types/product'
 import { formatPrice } from '@/lib/utils'
 import { ShoppingBag } from 'lucide-react'
-import { useCartStore } from '@/store/cartStore'
+import { useCart } from '@/store/cartStore'
 
 interface ProductCardProps {
     product: Product
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-    const addItem = useCartStore((state) => state.addItem)
+    const { addItem, hasHydrated } = useCart()
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault()
@@ -33,12 +33,14 @@ export default function ProductCard({ product }: ProductCardProps) {
                     />
 
                     {/* Quick Add to Cart */}
-                    <button
-                        onClick={handleAddToCart}
-                        className="absolute bottom-4 right-4 bg-gray-900 p-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-gray-600 hover:text-white"
-                    >
-                        <ShoppingBag className="w-5 h-5" />
-                    </button>
+                    {hasHydrated && (
+                        <button
+                            onClick={handleAddToCart}
+                            className="absolute bottom-4 right-4 bg-gray-900 p-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-gray-600 hover:text-white"
+                        >
+                            <ShoppingBag className="w-5 h-5" />
+                        </button>
+                    )}
                 </div>
 
                 {/* Info */}

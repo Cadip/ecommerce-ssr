@@ -44,7 +44,9 @@ export default function ConfirmationPage() {
                     <div className="grid grid-cols-2 gap-4 text-sm mb-6">
                         <div>
                             <p className="text-gray-500">Order Number</p>
-                            <p className="font-semibold text-gray-700">{orderData.orderId}</p>
+                            <p className="font-semibold text-gray-700">
+                                ORD-{String(orderData.orderId).padStart(6, '0')}
+                            </p>
                         </div>
                         <div>
                             <p className="text-gray-500">Date</p>

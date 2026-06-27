@@ -69,9 +69,31 @@ export const useCartStore = create<CartStore>()(
         }),
         {
             name: 'cart-storage',
-             onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true)
             }
         }
     )
 )
+
+export function useCart() {
+    const hasHydrated = useCartStore((state) => state.hasHydrated)
+    const items = useCartStore((state) => state.items)
+    const addItem = useCartStore((state) => state.addItem)
+    const removeItem = useCartStore((state) => state.removeItem)
+    const updateQuantity = useCartStore((state) => state.updateQuantity)
+    const clearCart = useCartStore((state) => state.clearCart)
+    const getTotalItems = useCartStore((state) => state.getTotalItems)
+    const getTotalPrice = useCartStore((state) => state.getTotalPrice)
+
+    return {
+        items: hasHydrated ? items : [],
+        totalItems: hasHydrated ? getTotalItems() : 0,
+        totalPrice: hasHydrated ? getTotalPrice() : 0,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        hasHydrated,
+    }
+}
